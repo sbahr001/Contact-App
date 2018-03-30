@@ -17,10 +17,9 @@ Route::get('/', function () {
 
 Auth::routes();
 
+Route::get('/oauth-tokens', function() {
+    return view('oauth/tokens');
+})->middleware('auth');
+
 Route::get('/home', 'HomeController@index')->name('home');
 
-Route::namespace('API')->prefix('/api/v1')->group(function() {
-    Route::get('/contact/{contact}', 'Contact\ShowContact');
-});
-
-// Contact API Routes

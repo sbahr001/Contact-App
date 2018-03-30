@@ -17,6 +17,7 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
     return $request->user();
 });
 
+Route::apiResource('/v1/contacts', 'API\ContactController');
 //
 //Route::namespace('API')
 //    ->prefix('/api/v1')->group(function(){
