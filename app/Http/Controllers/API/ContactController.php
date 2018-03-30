@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\API;
 
 use App\Contact;
+use App\Http\Resources\ContactResource;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 class ContactController extends Controller
 {
@@ -20,9 +23,9 @@ class ContactController extends Controller
      */
     public function index()
     {
-        //
-        return Contact::with('user')
-            ->simplePaginate(5);
+        return ContactResource::collection(
+            Contact::where('user_id', Auth::id())->paginate()
+        );
     }
 
     /**
@@ -34,6 +37,25 @@ class ContactController extends Controller
     public function store(Request $request)
     {
         //
+        $validator = Validator::make($request->input(), [
+            'first_name' => 'required',
+            'last_name' => 'required',
+            'email' => 'sometimes|array',
+            'photo' => 'sometimes|url',
+            'addresses' => 'sometimes|array'
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorResponse($validator->errors());
+        }
+
+        $contact = new Contact($request->input());
+        $contact->user = Auth::user();
+        if (!$contact->save()) {
+            return $this->errorResponse('Unable to save contact.');
+        }
+
+        return new ContactResource($contact);
     }
 
     /**
@@ -44,7 +66,7 @@ class ContactController extends Controller
      */
     public function show(Contact $contact)
     {
-        //
+        return new ContactResource($contact);
     }
 
     /**
@@ -57,6 +79,23 @@ class ContactController extends Controller
     public function update(Request $request, Contact $contact)
     {
         //
+        $validator = Validator::make($request->input(), [
+            'first_name' => 'sometimes|filled',
+            'last_name' => 'sometimes|filled',
+            'email' => 'sometimes|array',
+            'photo' => 'sometimes|url',
+            'addresses' => 'sometimes|array'
+        ]);
+
+        if ($validator->fails()) {
+            return $this->errorResponse($validator->errors());
+        }
+
+        $updated = $contact->update($request->input());
+
+        if (!$updated) {
+            return $this->errorResponse(['Unable to update contact.']);
+        }
     }
 
     /**
@@ -68,5 +107,12 @@ class ContactController extends Controller
     public function destroy(Contact $contact)
     {
         //
+        if ($contact->delete()) {
+            return $this->errorResponse(['Unable to delete contact']);
+        }
+
+        return response()->json([
+            'success' => true
+        ]);
     }
 }

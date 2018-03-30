@@ -17,8 +17,8 @@ Route::get('/', function () {
 
 Auth::routes();
 
-Route::get('/oauth-tokens', function() {
-    return view('oauth/tokens');
+Route::get('/personal-access-tokens', function() {
+    return view('oauth/access-tokens');
 })->middleware('auth');
 
 Route::get('/home', 'HomeController@index')->name('home');
